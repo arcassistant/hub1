@@ -24,6 +24,11 @@
 *   **Extensible:** Easy to integrate with additional sensors and peripherals.
 
 
+## Live demo
+
+View a live demo [here](https://github.com/arc-assistant/hub1/edit/main/.github/README.md).
+
+
 ## 🛠️ Hardware
 
 In hub1, we currently use:
