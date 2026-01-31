@@ -1,17 +1,5 @@
-// ==============================================
-// DEVELOPMENT DEBUG VARIABLE
-// Change this to test different inputs
-// ==============================================
-String debugInput = "hello";
-
-// Other test values (uncomment one):
-// String debugInput = "what time is it";
-// String debugInput = "weather";
-// String debugInput = "turn on lights";
-// String debugInput = "play music";
-// String debugInput = "help";
-// String debugInput = "goodbye";
-// ==============================================
+// Fake user input
+String debugInput = "test";
 
 #include <ArduinoJson.h>
 
