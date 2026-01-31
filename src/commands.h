@@ -12,7 +12,7 @@ const char* COMMANDS_JSON = R"=====([
   {"input": "clock", "output": "The clock is synchronized with internet time."},
   {"input": "what can you do", "output": "I'm ARC Assistant! I can show time, check weather, control lights, play music, and more."},
   {"input": "status", "output": "System status: All systems operational. WiFi connected. Version 0.4.3"},
-  {"input": "system info", "output": "ARC Hub v0.4.3 | WiFi: Connected},
+  {"input": "system info", "output": "ARC Hub v0.4.3 | WiFi: Connected"},
   {"input": "goodbye", "output": "Goodbye! Have a wonderful day!"},
   {"input": "bye", "output": "Bye! See you soon!"},
   {"input": "exit", "output": "Sorry, right now I can't turn off the hardware."},
