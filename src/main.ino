@@ -33,7 +33,7 @@ XPT2046_Touchscreen ts(TOUCH_CS);
 String camera_status = "OFF";
 String speaker_status = "OFF";
 String output = "Touch the screen to test";
-String version = "0.4.2";
+String version = "0.4.3";
 int loadProgress = 0;
 unsigned long lastUpdate = 0;
 int lastPercentage = -1;
@@ -51,6 +51,11 @@ unsigned long lastTouchTime = 0;
 #define BOX_COLOR 0xEF5D
 #define OUTPUT_BOX_COLOR 0xF7BE
 #define TOUCH_COLOR 0xF800  // Red for touch feedback
+
+// Function declarations from control.ino
+extern void setupControl();
+extern void processTouch(int x, int y);
+extern String getProcessedCommand();
 
 // Helper to control RGB (Common Anode: LOW = ON)
 void setLED(int r, int g, int b) {
@@ -142,35 +147,34 @@ void drawOutputBox() {
   // Clear area for output text (leave padding)
   tft.fillRect(20, 170, 280, 50, OUTPUT_BOX_COLOR);
   
-  // Split long text into multiple lines if needed
+  // Split output into lines based on newline characters
   String displayText = output;
-  int maxCharsPerLine = 40; // Approximate max chars for textSize 1
+  int lineCount = 0;
+  int currentPos = 0;
   
-  if (displayText.length() > maxCharsPerLine) {
-    // Find a good breaking point
-    int breakPoint = maxCharsPerLine;
-    for (int i = maxCharsPerLine; i > 0; i--) {
-      if (displayText.charAt(i) == ' ') {
-        breakPoint = i;
-        break;
-      }
+  // Find newlines and draw each line
+  while (currentPos < displayText.length() && lineCount < 3) {
+    int nextNewline = displayText.indexOf('\n', currentPos);
+    String line;
+    
+    if (nextNewline == -1) {
+      line = displayText.substring(currentPos);
+      currentPos = displayText.length();
+    } else {
+      line = displayText.substring(currentPos, nextNewline);
+      currentPos = nextNewline + 1;
     }
     
-    // Draw first line
-    String line1 = displayText.substring(0, breakPoint);
-    tft.setCursor(20, 170);
-    tft.print(line1);
-    
-    // Draw second line if there's more text
-    if (displayText.length() > breakPoint) {
-      String line2 = displayText.substring(breakPoint + 1);
-      tft.setCursor(20, 185);
-      tft.print(line2);
+    // Trim line if too long (optional safety)
+    if (line.length() > 40) {
+      line = line.substring(0, 37) + "...";
     }
-  } else {
-    // Single line of text
-    tft.setCursor(20, 175);
-    tft.print(displayText);
+    
+    // Draw the line
+    tft.setCursor(20, 170 + (lineCount * 15));
+    tft.print(line);
+    
+    lineCount++;
   }
 }
 
@@ -203,6 +207,9 @@ void setup() {
   // Initialize XPT2046 touch screen
   ts.begin();
   ts.setRotation(1); // Set rotation to match display
+
+  // Initialize control system
+  setupControl();
 
   // Draw initial UI - KEEPING YOUR EXACT LOADING ANIMATION
   drawStatusBar();
@@ -386,8 +393,12 @@ void setup() {
   tft.fillScreen(BG_COLOR);
   setLED(0, 1, 0); // Green when connected
   
-  // Initial output message
-  output = "Touch screen to test";
+  // Initial output message with command response
+  output = "Touch screen to see command response";
+  String cmdResponse = getProcessedCommand();
+  if (cmdResponse.length() > 0) {
+    output = "Ready!\nCommand: " + cmdResponse;
+  }
 }
 
 void loop() {
@@ -448,9 +459,17 @@ void loop() {
       // Show visual touch feedback
       showTouchFeedback(screenX, screenY);
       
-      // Update output text with touch coordinates
-      output = "Touch: X=" + String(screenX) + " Y=" + String(screenY);
-      Serial.printf("Screen - X: %d, Y: %d\n", screenX, screenY);
+      // Notify control system about touch
+      processTouch(screenX, screenY);
+      
+      // Get the command output from control system
+      String cmdResponse = getProcessedCommand();
+      
+      // Update output with both touch info and command response
+      output = "Touch: X=" + String(screenX) + ", Y=" + String(screenY);
+      output += "\n" + cmdResponse;
+      
+      Serial.println(output);
       
       // Update the display immediately
       drawOutputBox();
